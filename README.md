@@ -12,4 +12,4 @@ The try to figure out what mostly affects daily income from data I collected
 Показался интересным момент с shrink() в catboost и разница в MSE (можно найти по shrink) <br/>
 Доволен написанными функциями week_to_label и select_weights <br/>
 
-Возможно появится ТГ бот, но это займет больше всего времени, и он пока не в приоретете
+.tgbot Добавлен тг бот отдельной папкой
