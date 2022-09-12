@@ -118,7 +118,7 @@ def predobr(smth):
 
     return z
 
-def predictpls(day_variables):
+def predictpls(message, day_variables):
 
 #Общая предобработка
     day_variables[-1] = weekday_to_label(day_variables[-1])
@@ -128,19 +128,19 @@ def predictpls(day_variables):
     df.loc[0] = day_variables
 
     x2 = cbm.predict(day_variables) #тут может выдавать предсказания cbm
-
     #предобработка для knr
     df1 = df.copy()
     df1 = ohe.transform(df1)
     x1 = knr.predict(df1)
-
     #предобработка для lgbm
     to_category(df)
     x3 = lgbm.predict(df)
 
 
-
     data = {'x1':[x1], 'x2':[x2], 'x3':[x3]}
+    global models_predictions 
+    models_predictions = ('Предсказания отдельных моделей:\n'
+        'knr: {k},\ncbm: {c:.2f},\nlgbm: {l:.2f}'.format(k = data['x1'][0][0], c = data['x2'][0], l =data['x3'][0][0]))
     return rfrblend.predict(pd_DataFrame(data=data))
 
 #_______________________________________________________________________________________________
@@ -181,18 +181,20 @@ greeting = ('Привет! В общем, формат такой: \n'
 
 bot = telebot.TeleBot('**********:AA***089FHbRz3***_OHqLIADH09RIQL***')
 
+#telebot.BaseMiddleware
 
 @bot.message_handler(commands=['start'])
 def welcome(message):                   #1, 0, 3, 4, 1, ср
 
     markup=types.ReplyKeyboardMarkup(resize_keyboard=True)
-    item1=types.KeyboardButton("Напомни формат")
-    item2=types.KeyboardButton("Рандом")
+    item1=types.KeyboardButton('Напомни формат')
+    item2=types.KeyboardButton('Рандом')
+    item3=types.KeyboardButton('Предсказания отдельных моделей')
     markup.add(item1)
     markup.add(item2)
+    markup.add(item3)
 
-    bot.send_message(message.chat.id, greeting, reply_markup=markup
-                                      )
+    bot.send_message(message.chat.id, greeting, reply_markup=markup)
 
 
 @bot.message_handler(content_types=['text'])
@@ -203,31 +205,18 @@ def answer(message):
     elif message.text == 'Рандом' :
         the_random_day = random_day()
         bot.send_message(message.chat.id, 'Рандомно выбрано следующее: \n {}'.format(the_random_day))
-        bot.send_message(message.chat.id, 'При таких входных данных \nВыручка будет: {}'.format('%.2f' %predictpls(the_random_day)[0]))
+        bot.send_message(message.chat.id, 'При таких входных данных \nВыручка будет: {}'.format('%.2f' %predictpls(message, the_random_day)[0]))
 
+    elif message.text == 'Предсказания отдельных моделей':
+         bot.send_message(message.chat.id, models_predictions)
 
     else:
         bot.send_message(message.chat.id, 'Анализируем...')
-        # passenger_data = message.text.split()
-        # passenger_data.insert(0, 0)
-        # passenger_data.insert(9, ',')
-        # passenger_data[2] = '"',passenger_data[2],'"'
-
-        #answer = predict_d_r(list(message)) #passenger_data
         print(message)
         bot.send_message(message.chat.id, message.text)
         bot.send_message(message.chat.id, 'Ща, сек')
-        bot.send_message(message.chat.id, 'Формат {}'.format(type(message.text)))
         bot.send_message(message.chat.id, 'Кажись, суммарно будет {}'.format(summka(message.text)))
-        bot.send_message(message.chat.id, 'Выручка? Выручка будет: {}'.format('%.2f' %predictpls(predobr(message.text))[0]))
-
-
-        # if answer:
-        #     bot.send_message(message.chat.id, 'Исходя из наблюдений, выручка должна быть такой:')
-        #     answer = predict_d_r(list(message))
-        
-        
-        # bot.send_message(message.chat.id, 'Анализируем...')
+        bot.send_message(message.chat.id, 'Выручка? Выручка будет: {}'.format('%.2f' %predictpls(message, predobr(message.text))[0]))
 
 
         do_again(message)
