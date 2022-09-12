@@ -12,6 +12,6 @@ The try to figure out what mostly affects daily income from data I collected
 Доволен написанными функциями week_to_label и select_weights <br/>
 
 .tgbot Добавлен тг бот отдельной папкой, упакован в докер и перенесен на сервер <br/>
-Бот доступен по ссылке t.me/daily_rev_pred_bot
+Бот доступен по ссылке https://t.me/daily_rev_pred_bot
 
 
