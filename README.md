@@ -8,7 +8,6 @@ The try to figure out what mostly affects daily income from data I collected
 .viruchka_short отдельный файл с загрузкой обученных моделей (только на треин дф), <br/>
 и помещение их в функцию, где по предсказаниям 3 моделей случайный лес выдает итоговое предсказание <br/>
 
-Показался интересным момент с shrink() в catboost и разница в MSE (можно найти по shrink) <br/>
 Доволен написанными функциями week_to_label и select_weights <br/>
 
 .tgbot Добавлен тг бот отдельной папкой, упакован в докер и перенесен на сервер <br/>
