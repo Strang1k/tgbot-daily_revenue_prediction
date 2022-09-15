@@ -1,0 +1,15 @@
+FROM python:3.7
+
+RUN mkdir -p /drp
+COPY . /drp/
+WORKDIR /drp
+
+RUN pip install -U pip 
+RUN pip install -r requirements.txt
+
+ 
+RUN apt-get -y install curl
+RUN apt-get install libgomp1
+
+ENTRYPOINT ["python"]
+CMD ["bot.py"]
