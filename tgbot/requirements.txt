@@ -1,0 +1,6 @@
+pyTelegramBotAPI
+pandas
+sklearn
+catboost
+lightgbm
+graphviz
