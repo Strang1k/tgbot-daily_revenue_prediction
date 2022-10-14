@@ -1,6 +1,6 @@
 pyTelegramBotAPI
-pandas
-sklearn
+pandas==1.3.4
+scikit-learn==1.0.1
 catboost
 lightgbm
 graphviz
