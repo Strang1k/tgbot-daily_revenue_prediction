@@ -1,11 +1,19 @@
-import logging
+#import logging
 import time
 import telebot
 from telebot import types
 import random
+import requests, json
+from datetime import datetime
+
+# logging.basicConfig( format="%(asctime)s %(levelname)s %(message)s", level=logging.INFO,
+#                     filename = 'bot.log', filemode='a',  force = True ) #без force не создается .log файл
+
+# stream_handler = [h for h in logging.root.handlers if isinstance(h , logging.StreamHandler)][0]
+# stream_handler.setLevel(logging.INFO)
 
 
-logging.basicConfig(filemode='bot.log', level=logging.DEBUG)
+
 #_______________________________________________________________________________________________
 #функции предобработки и предскзаания
 
@@ -169,7 +177,7 @@ def predictpls(message, day_variables):
         return x2*0.8748748748748749+x1*0.12512512512512508
 
 #_______________________________________________________________________________________________
-#Рандом дня
+#Рандом дня / 'Сегодня'
 
 def unbracketed(content_line):
     result = []
@@ -182,12 +190,41 @@ def unbracketed(content_line):
 
 def random_day():
     randomday = []
-    randomday.append(random.choice([[1, 0], [0, 1]]))
-    randomday.append(random.randrange(1, 13))
-    randomday.append(random.randrange(-30, 36))
-    randomday.append(random.randrange(0, 2))
-    randomday.append(random.randrange(1, 8))
+    randomday.append(random.choice([[1, 0], [0, 1]])) #девочка/мальчик
+    randomday.append(random.randrange(1, 13)) #Месяц
+    randomday.append(random.randrange(-30, 36)) #Темп
+    randomday.append(random.randrange(0, 2)) #Дождь/снег
+    randomday.append(random.randrange(1, 8)) #День недели
     return unbracketed(randomday)
+
+def weekday_changer(x):
+    if x == 0:
+        x = 'пн'
+    if x == 1:
+        x = 'вт'    
+    if x == 2:
+        x = 'ср'
+    if x == 3:
+        x = 'чт'
+    if x == 4:
+        x = 'пт'
+    if x == 5:
+        x = 'сб'
+    if x == 6:
+        x = 'вс'
+    return x
+
+
+def today_pred():
+    today = []
+    today.append(random.choice([[1, 0], [0, 1]])) #девочка/мальчик
+    today.append(datetime.today().month) #Месяц
+    today.append(round(temp)) #Темп
+    today.append(1 if rain or snow > 0 else 0) #Дождь/снег
+    today.append(weekday_changer(datetime.today().weekday())) #День недели
+    return unbracketed(today)
+
+
 
 #_______________________________________________________________________________________________
 
@@ -216,9 +253,11 @@ def welcome(message):                   #1, 0, 3, 4, 1, ср
     item1=types.KeyboardButton('Напомни формат')
     item2=types.KeyboardButton('Рандом')
     item3=types.KeyboardButton('Предсказания отдельных моделей')
+    item4=types.KeyboardButton('Предсказание на сегодня')
     markup.add(item1)
     markup.add(item2)
     markup.add(item3)
+    markup.add(item4)
 
     bot.send_message(message.chat.id, greeting, reply_markup=markup)
 
@@ -235,17 +274,23 @@ def answer(message):
 
     elif message.text == 'Предсказания отдельных моделей':
          bot.send_message(message.chat.id, models_predictions)
+    
+    elif message.text == 'Предсказание на сегодня':
+        fortoday = today_pred()
+        bot.send_message(message.chat.id, 'Для "сегодня" получится: \n {}'.format(fortoday))
+        bot.send_message(message.chat.id, 'При таких входных данных \nВыручка будет: {}'.format('%.2f' %predictpls(message, fortoday)[0]))
+
 
     else:
         bot.send_message(message.chat.id, 'Анализируем...')
-        print(message)
+        print(message.chat)
         bot.send_message(message.chat.id, message.text)
         bot.send_message(message.chat.id, 'Ща, сек')
         bot.send_message(message.chat.id, 'Кажись, суммарно будет {}'.format(summka(message.text)))
         bot.send_message(message.chat.id, 'Выручка? Выручка будет: {}'.format('%.2f' %predictpls(message, predobr(message.text))[0]))
 
 
-        do_again(message)
+        do_again(message)      
 
 def summka(list):
     y = (list.split(sep=',')) 
@@ -267,9 +312,19 @@ def do_again(message):
     bot.send_message(message.chat.id, 'Попробуем другие входные данные?')
 
 
+
+
 if __name__ == '__main__':
     while True: 
         try:
+            URL = 'https://api.open-meteo.com/v1/forecast?latitude=59.94&longitude=30.31&hourly=temperature_2m,rain,snowfall'
+            response = requests.get(URL)
+            pogoda = response.json()
+
+            temp = pogoda['hourly']['temperature_2m'][0] #температура
+            rain = pogoda['hourly']['rain'][0] #дождь
+            snow = pogoda['hourly']['snowfall'][0] #снег
             bot.polling(none_stop=True)
+            time.sleep(43200)
         except:
             time.sleep(5)
